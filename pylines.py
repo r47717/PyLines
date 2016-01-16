@@ -6,13 +6,22 @@ import threading as th
 from tkinter import *
 from time import sleep
 from tkinter.messagebox import showinfo
+from enum import Enum
 
 
-# --- Events ---#
+class Status(Enum):
+    on = 1       # game in progress
+    over = 3     # game over, can restart
+    quit = 4     # game is being quit, restart impossible
+
+
+# ---------------------------------------------- Events ---------------------------------------------------------------#
 
 def on_mouse_down(event, arg):
-    global mouseEnabled, doIncrementEvent, score
+    global mouseEnabled, doIncrementEvent, score, status
     if not mouseEnabled:
+        return
+    if status != Status.on:
         return
     mouseEnabled = False
     (canvas, balls) = arg
@@ -31,10 +40,32 @@ def on_mouse_down(event, arg):
         doIncrementEvent.set()
     mouseEnabled = True
 
-# --- Balls thread ---#
+
+def on_menu_restart():
+    global status, balls, canvas, score, mouseEnabled, doIncrementEvent
+    balls.clean(canvas)
+    status = Status.on
+    score = 0
+    update_score(0)
+    mouseEnabled = False
+    doIncrementEvent.set()
+
+
+def on_menu_exit():
+    global root, status, doIncrementEvent
+    status = Status.quit
+    doIncrementEvent.set()
+    root.quit()
+
+
+def on_menu_about():
+    showinfo(title="About", message="PyLines (c) by r47717")
+
+
+# ----------------------------------------------- Balls thread --------------------------------------------------------#
 
 def balls_thread_func(canvas, balls):
-    global mouseEnabled, gameStopped, doIncrementEvent, score
+    global mouseEnabled, status, doIncrementEvent, score
     delay = 0.7
     initial_num = 3
     increment_num = 3
@@ -42,16 +73,16 @@ def balls_thread_func(canvas, balls):
         balls.new_random_ball(canvas)
         sleep(delay)
     mouseEnabled = True
-    while not gameStopped:
+    while status != Status.quit:
         doIncrementEvent.wait()
-        if gameStopped:
+        if status == Status.quit:
             return
         mouseEnabled = False
         for i in range(1, increment_num + 1):
             sleep(delay)
             if balls.get_size() == CELLS*CELLS:
                 game_over(score)
-                return
+                continue
             balls.new_random_ball(canvas)
         lines = balls.collapse_lines(canvas)
         if lines:
@@ -61,7 +92,7 @@ def balls_thread_func(canvas, balls):
         mouseEnabled = True
 
 
-# --- Canvas drawings ---#
+# ---------------------------------------------- Canvas drawings ------------------------------------------------------#
 
 def draw_grid(canvas):
     for n in range(1, CELLS):
@@ -72,7 +103,8 @@ def draw_grid(canvas):
         canvas.create_line(x0, y0, x1, y1, width=1, fill="#CCCCCC")
         canvas.create_line(y0, x0, y1, x1, width=1, fill="#CCCCCC")
         pass
-        #canvas.create_rectangle(i * DD, j * DD, i * DD + DD, j * DD + DD, fill="#EEEEEE", width=1)
+
+# ---------------------------------------------- Game control ---------------------------------------------------------#
 
 
 def update_score(num):
@@ -80,36 +112,55 @@ def update_score(num):
     s = "Score: %d" % (num)
     score_label.config(text=s)
 
+
 def game_over(num):
-    global score_label
+    global score_label, status, doIncrementEvent
+    doIncrementEvent.clear()
+    status = Status.over
     s = "Game Over, Final Score: %d" % (num)
     score_label.config(text=s)
 
 
-# --- run GUI ---#
-
-root = Tk()
-root.title("PyLines")
-root.wm_resizable(False, False)
-canvas = Canvas(root, width=FIELD_SIZE, height=FIELD_SIZE, bd=4, relief=RIDGE)
-draw_grid(canvas)
 balls = BallSet()
-canvas.bind("<Button-1>", lambda event, arg=(canvas, balls): on_mouse_down(event, arg))
-canvas.pack()
+
+status = Status.on
 
 score = 0
-score_label = Label(root, text="Score: 0")
-score_label.pack()
 
 mouseEnabled = False # TODO: replace with a mutex
 doIncrementEvent = th.Event()
 doIncrementEvent.clear()
-gameStopped = False
+
+# ------------------------------------------------ Create GUI ---------------------------------------------------------#
+
+root = Tk()
+root.title("PyLines")
+root.wm_resizable(False, False)
+
+menubar = Menu(root)
+file_menu = Menu(menubar, tearoff=False)
+file_menu.add_command(label="Restart", command=on_menu_restart)
+file_menu.add_separator()
+file_menu.add_command(label="Exit", command=on_menu_exit)
+menubar.add_cascade(label="File", menu=file_menu)
+help_menu = Menu(menubar, tearoff=False)
+help_menu.add_command(label="About...", command=on_menu_about)
+menubar.add_cascade(label="Help", menu=help_menu)
+root.config(menu=menubar)
+
+canvas = Canvas(root, width=FIELD_SIZE, height=FIELD_SIZE, bd=4, relief=RIDGE)
+draw_grid(canvas)
+canvas.bind("<Button-1>", lambda event, arg=(canvas, balls): on_mouse_down(event, arg))
+canvas.pack()
+
+score_label = Label(root, text="Score: 0")
+score_label.pack()
+
 ballsThread = th.Thread(target=balls_thread_func, args=(canvas, balls))
 ballsThread.start()
 
 root.mainloop()
 
-gameStopped = True
+status = Status.quit
 doIncrementEvent.set()
 ballsThread.join()
