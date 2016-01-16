@@ -26,11 +26,12 @@ class Ball:
 
     def draw(self, canvas: Canvas):
         border = 'black' if self.selected else self.color
-        x = self.i * DD
-        y = self.j * DD
-        pad = 2
+        x = BORDER + self.i * DD
+        y = BORDER + self.j * DD
+        pad = 4
         if not self.id:
-            self.id = canvas.create_oval(x + pad, y + pad, x + DD - pad, y + DD - pad, fill=self.color, outline=border)
+            self.id = canvas.create_oval(x + pad, y + pad, x + DD - pad, y + DD - pad,
+            fill=self.color, outline=border)
 
     def move(self, i, j, canvas: Canvas):
         diff_x = (i - self.i) * DD

@@ -5,7 +5,7 @@ from ball import Ball
 from tkinter import Canvas
 from tkinter.messagebox import showinfo
 
-colors = ['red', 'green', 'blue', 'yellow']
+colors = ['red', 'green', 'blue', 'yellow', 'orange', 'magenta']
 
 
 class BallSet:
@@ -18,6 +18,9 @@ class BallSet:
         for ball in self.data:
             s += "(%d, %d)\n" % ball.coords()
         return s
+
+    def get_size(self):
+        return len(self.data)
 
     def find(self, i, j):
         for ball in self.data:
@@ -101,24 +104,24 @@ class BallSet:
     def collapse_lines(self, canvas: Canvas):
         """
         Checks for 3+ long lines and collapses it (removes corresponding balls)
-        :return: True if any lines were collapsed, False otherwise
+        :return: number of balls collapsed
         """
-        dirty = False
+        count = 0
         while True:
             color_sets = self.ball_sets_by_color()
             longest = []
             longest_len = 0
-            for set in color_sets:
-                longest_seq = find_longest(set)
+            for s in color_sets:
+                longest_seq = find_longest(s)
                 if len(longest_seq) > longest_len:
                     longest = longest_seq[:]
                     longest_len = len(longest_seq)
-            if longest_len >= 3:
+            if longest_len >= MIN_SEQ:
                 reduce_seq(self.data, longest, canvas)
-                dirty = True
+                count += longest_len
             else:
                 break
-        return dirty
+        return count
 
     def move_ball(self, new_i, new_j, canvas):
         """

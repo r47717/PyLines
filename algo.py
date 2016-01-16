@@ -117,11 +117,11 @@ def find_longest_recursive(balls):
     :param balls: balls list
     :return: list with the sequence
     """
-    if len(balls) < 3:
+    if len(balls) < MIN_SEQ:
         return []
     if is_seq(balls):
         return balls
-    if len(balls) == 3:
+    if len(balls) == MIN_SEQ:
         return []
 
     original = balls[:]
@@ -169,7 +169,7 @@ def vh_longest(n, balls, is_vertical = True):
     :return: returns list of balls as the longest sequence or [] if no sequence (a sequence is at least 3 balls)
     """
     filtered = vh_filter(n, balls, is_vertical)
-    if len(filtered) < 3:
+    if len(filtered) < MIN_SEQ:
         return []
     index = 1 if is_vertical else 0   # will filter by i or j coord
     filtered = sorted(filtered, key = lambda ball: ball.coords()[index])
@@ -189,7 +189,7 @@ def vh_longest(n, balls, is_vertical = True):
     if len(seq) > longest_len:
         longest_seq = seq[:]
         longest_len = len(seq)
-    return longest_seq if len(longest_seq) >= 3 else []
+    return longest_seq if len(longest_seq) >= MIN_SEQ else []
 
 
 def diag_coords(n):
@@ -238,7 +238,7 @@ def d_longest(n, balls):
     :return:
     """
     filtered = d_filter(n, balls)
-    if len(filtered) < 3:
+    if len(filtered) < MIN_SEQ:
         return []
     filtered = sorted(filtered, key = lambda ball: ball.coords()[0])
     longest_seq = []
@@ -260,7 +260,7 @@ def d_longest(n, balls):
     if len(seq) > longest_len:
         longest_seq = seq[:]
         longest_len = len(seq)
-    return longest_seq if len(longest_seq) >= 3 else []
+    return longest_seq if len(longest_seq) >= MIN_SEQ else []
 
 
 def find_longest(balls):
