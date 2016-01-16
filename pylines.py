@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
 
+from params import *
 from ballset import BallSet
 import threading as th
 from tkinter import *
 from time import sleep
 from tkinter.messagebox import showinfo
-
-FIELD_SIZE = 500
-CELLS = 10
-DD = FIELD_SIZE / CELLS
 
 
 # --- Events ---#
@@ -38,7 +35,7 @@ def on_mouse_down(event, arg):
 def balls_thread_func(canvas, balls):
     global mouseEnabled, gameStopped, doIncrementEvent
     delay = 0.7
-    initial_num = 5
+    initial_num = 3
     increment_num = 3
     for i in range(1, initial_num + 1):
         balls.new_random_ball(canvas)
@@ -46,6 +43,8 @@ def balls_thread_func(canvas, balls):
     mouseEnabled = True
     while not gameStopped:
         doIncrementEvent.wait()
+        if gameStopped:
+            return
         mouseEnabled = False
         for i in range(1, increment_num + 1):
             sleep(delay)
@@ -90,3 +89,7 @@ ballsThread = th.Thread(target=balls_thread_func, args=(canvas, balls))
 ballsThread.start()
 
 root.mainloop()
+
+gameStopped = True
+doIncrementEvent.set()
+ballsThread.join()

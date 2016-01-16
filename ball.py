@@ -1,6 +1,4 @@
-FIELD_SIZE = 500
-CELLS = 10
-DD = FIELD_SIZE / CELLS
+from params import *
 
 
 class Ball:
