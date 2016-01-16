@@ -1,5 +1,5 @@
 from params import *
-from ballset import BallSet
+#from ballset import BallSet
 
 
 def relation(ball0, ball1):

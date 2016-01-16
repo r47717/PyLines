@@ -1,3 +1,4 @@
+from algo import *
 from params import *
 from random import randint, choice
 from ball import Ball
@@ -111,12 +112,12 @@ class BallSet:
             longest = []
             longest_len = 0
             for set in color_sets:
-                longest_seq = self.find_longest(set)
+                longest_seq = find_longest(set)
                 if len(longest_seq) > longest_len:
                     longest = longest_seq[:]
                     longest_len = len(longest_seq)
             if longest_len >= 3:
-                BallSet.reduce_seq(self.data, longest)
+                reduce_seq(self.data, longest)
                 dirty = True
             else:
                 break
