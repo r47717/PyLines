@@ -291,7 +291,7 @@ def find_longest(balls):
     return longest
 
 
-def reduce_seq(balls, seq):
+def reduce_seq(balls, seq, canvas):
     """
     Removes balls from seq from 'balls'
     :param balls:
@@ -299,5 +299,6 @@ def reduce_seq(balls, seq):
     :return:
     """
     for ball in seq:
+        ball.delete(canvas)
         balls.remove(ball)
 

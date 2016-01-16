@@ -2,6 +2,7 @@ from algo import *
 from params import *
 from random import randint, choice
 from ball import Ball
+from tkinter import Canvas
 from tkinter.messagebox import showinfo
 
 colors = ['red', 'green', 'blue', 'yellow']
@@ -53,10 +54,9 @@ class BallSet:
         for ball in self.data:
             ball.draw(canvas)
 
-    def clear_cell(self, i, j, canvas):
-        canvas.create_rectangle(i * DD, j * DD, i * DD + DD, j * DD + DD, fill="#EEEEEE", width=1)
-
-    def clean(self):
+    def clean(self, canvas):
+        for item in self.data:
+            item.delete(canvas)
         self.data = []
 
     def select_ball(self, i, j, canvas):
@@ -64,17 +64,17 @@ class BallSet:
         if not ball: # empty space click - do nothing
             return
         if ball == self.selected_ball: # clicked on selected ball - unselect
-            self.selected_ball.select(False)
-            self.selected_ball.draw(canvas)
+            self.selected_ball.select(canvas, False)
+            #self.selected_ball.draw(canvas)
             self.selected_ball = None
             return
         # clicked on new ball - select new
         if self.selected_ball:
-            self.selected_ball.select(False)
-            self.selected_ball.draw(canvas)
+            self.selected_ball.select(canvas, False)
+            #self.selected_ball.draw(canvas)
         self.selected_ball = ball
-        ball.select()
-        ball.draw(canvas)
+        ball.select(canvas)
+        #ball.draw(canvas)
 
     def get_selected_ball(self):
         return self.selected_ball
@@ -101,7 +101,7 @@ class BallSet:
             color_list.append(self.find_balls_by_color(color))
         return color_list
 
-    def collapse_lines(self):
+    def collapse_lines(self, canvas: Canvas):
         """
         Checks for 3+ long lines and collapses it (removes corresponding balls)
         :return: True if any lines were collapsed, False otherwise
@@ -117,7 +117,7 @@ class BallSet:
                     longest = longest_seq[:]
                     longest_len = len(longest_seq)
             if longest_len >= 3:
-                reduce_seq(self.data, longest)
+                reduce_seq(self.data, longest, canvas)
                 dirty = True
             else:
                 break
@@ -133,14 +133,11 @@ class BallSet:
         """
         ball = self.find(new_i, new_j)
         if ball:
-            self.select_ball(new_i, new_j, canvas)
+            self.select_ball(new_i, new_j, canvas) # TODO: check this out
             return False
         if self.move_route_exists(*self.selected_ball.coords(), i2=new_i, j2=new_j):
-            (old_i, old_j) = self.selected_ball.coords()
-            self.selected_ball.move(new_i, new_j)
-            self.selected_ball.select(False)
-            self.clear_cell(old_i, old_j, canvas)
-            self.selected_ball.draw(canvas)
+            self.selected_ball.move(new_i, new_j, canvas)
+            self.selected_ball.select(canvas, False)
             self.selected_ball = None
             return True
         else:

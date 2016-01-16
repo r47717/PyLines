@@ -24,9 +24,9 @@ def on_mouse_down(event, arg):
         mouseEnabled = True
         return
     if balls.move_ball(i, j, canvas):
-        balls.collapse_lines()
-        clean_canvas(canvas)
-        balls.draw_all_balls(canvas)
+        balls.collapse_lines(canvas)
+        #clean_canvas(canvas)
+        #balls.draw_all_balls(canvas)
         doIncrementEvent.set()
     mouseEnabled = True
 
@@ -49,9 +49,9 @@ def balls_thread_func(canvas, balls):
         for i in range(1, increment_num + 1):
             sleep(delay)
             balls.new_random_ball(canvas)
-        if balls.collapse_lines():
-            clean_canvas(canvas)
-            balls.draw_all_balls(canvas)
+        balls.collapse_lines(canvas)
+        #clean_canvas(canvas)
+        #balls.draw_all_balls(canvas)
         doIncrementEvent.clear()
         mouseEnabled = True
 
