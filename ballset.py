@@ -65,16 +65,13 @@ class BallSet:
             return
         if ball == self.selected_ball: # clicked on selected ball - unselect
             self.selected_ball.select(canvas, False)
-            #self.selected_ball.draw(canvas)
             self.selected_ball = None
             return
         # clicked on new ball - select new
         if self.selected_ball:
             self.selected_ball.select(canvas, False)
-            #self.selected_ball.draw(canvas)
         self.selected_ball = ball
         ball.select(canvas)
-        #ball.draw(canvas)
 
     def get_selected_ball(self):
         return self.selected_ball

@@ -25,8 +25,6 @@ def on_mouse_down(event, arg):
         return
     if balls.move_ball(i, j, canvas):
         balls.collapse_lines(canvas)
-        #clean_canvas(canvas)
-        #balls.draw_all_balls(canvas)
         doIncrementEvent.set()
     mouseEnabled = True
 
@@ -50,8 +48,6 @@ def balls_thread_func(canvas, balls):
             sleep(delay)
             balls.new_random_ball(canvas)
         balls.collapse_lines(canvas)
-        #clean_canvas(canvas)
-        #balls.draw_all_balls(canvas)
         doIncrementEvent.clear()
         mouseEnabled = True
 
@@ -62,12 +58,6 @@ def draw_grid(canvas):
     for i in range(0, CELLS):
         for j in range(0, CELLS):
             canvas.create_rectangle(i * DD, j * DD, i * DD + DD, j * DD + DD, fill="#EEEEEE", width=1)
-
-def clean_canvas(canvas):
-    draw_grid(canvas)
-
-def clean_cell(canvas, i, j):
-    canvas.create_rectangle(i * DD, j * DD, i * DD + DD, j * DD + DD, fill="#EEEEEE", width=1)
 
 
 # --- run GUI ---#
