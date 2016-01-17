@@ -15,121 +15,121 @@ class Status(Enum):
     quit = 4     # game is being quit, restart impossible
 
 
-# ---------------------------------------------- Events ---------------------------------------------------------------#
+# ---------------------------------------------- Canvas ---------------------------------------------------------------#
 
-def on_mouse_down(event, arg):
-    global mouseEnabled, doIncrementEvent, score, status
-    if not mouseEnabled:
-        return
-    if status != Status.on:
-        return
-    mouseEnabled = False
-    (canvas, balls) = arg
-    i = event.x // DD
-    j = event.y // DD
-    selected_ball = balls.get_selected_ball()
-    if not selected_ball:
-        balls.select_ball(i, j, canvas)
-        mouseEnabled = True
-        return
-    if balls.move_ball(i, j, canvas):
-        lines = balls.collapse_lines(canvas)
-        if lines:
-            score += lines
-            update_score(score)
-        doIncrementEvent.set()
-    mouseEnabled = True
+class LinesCanvas(Canvas):
+    def __init__(self, parent, balls):
+        Canvas.__init__(self, parent, width=FIELD_SIZE, height=FIELD_SIZE, bd=4, relief=RIDGE)
+        parent.set_canvas(self)
+        self.draw_grid()
+        self.pack()
+        self.balls = balls
+        self.bind("<Button-1>", self.on_mouse_down)
+        self.delay = 0.7
+        self.increment = 3
+        self.initial_balls()
 
+    def draw_grid(self):
+        for n in range(1, CELLS):
+            x0 = BORDER + DD * n
+            y0 = BORDER
+            x1 = x0
+            y1 = y0 + DD * CELLS
+            self.create_line(x0, y0, x1, y1, width=1, fill="#CCCCCC")
+            self.create_line(y0, x0, y1, x1, width=1, fill="#CCCCCC")
 
-def on_menu_restart():
-    global status, balls, canvas, score, mouseEnabled, doIncrementEvent
-    balls.clean(canvas)
-    status = Status.on
-    score = 0
-    update_score(0)
-    mouseEnabled = False
-    doIncrementEvent.set()
-
-
-def on_menu_exit():
-    global root, status, doIncrementEvent
-    status = Status.quit
-    doIncrementEvent.set()
-    root.quit()
-
-
-def on_menu_about():
-    showinfo(title="About", message="PyLines (c) by r47717")
-
-
-# ----------------------------------------------- Balls thread --------------------------------------------------------#
-
-def balls_thread_func(canvas, balls):
-    global mouseEnabled, status, doIncrementEvent, score
-    delay = 0.7
-    initial_num = 3
-    increment_num = 3
-    for i in range(1, initial_num + 1):
-        balls.new_random_ball(canvas)
-        sleep(delay)
-    mouseEnabled = True
-    while status != Status.quit:
-        doIncrementEvent.wait()
-        if status == Status.quit:
+    def on_mouse_down(self, event):
+        if self.master.status != Status.on:
             return
-        mouseEnabled = False
-        for i in range(1, increment_num + 1):
-            sleep(delay)
-            if balls.get_size() == CELLS*CELLS:
-                game_over(score)
-                continue
-            balls.new_random_ball(canvas)
-        lines = balls.collapse_lines(canvas)
+        i = event.x // DD
+        j = event.y // DD
+        selected_ball = self.balls.get_selected_ball()
+        if not selected_ball:
+            self.balls.select_ball(i, j, self)
+            return
+        if self.balls.move_ball(i, j, self):
+            self.update()
+            sleep(0.05)
+            lines = self.balls.collapse_lines(self)
+            sleep(0.05)
+            if lines:
+                self.master.add_to_score(lines)
+            self.new_balls()
+
+    def initial_balls(self):
+        for i in range(self.increment):
+            self.balls.new_random_ball(self)
+            self.update()
+            sleep(self.delay)
+
+    def new_balls(self):
+        for i in range(self.increment):
+            sleep(self.delay)
+            if self.balls.get_size() == CELLS*CELLS:
+                self.master.game_over()
+                return
+            self.balls.new_random_ball(canvas)
+            self.update()
+        lines = self.balls.collapse_lines(canvas)
         if lines:
-            score += lines
-            update_score(score)
-        doIncrementEvent.clear()
-        mouseEnabled = True
+            self.master.add_to_score(lines)
+
+    def restart(self):
+        self.balls.clean(self)
+        self.initial_balls()
 
 
-# ---------------------------------------------- Canvas drawings ------------------------------------------------------#
-
-def draw_grid(canvas):
-    for n in range(1, CELLS):
-        x0 = BORDER + DD * n
-        y0 = BORDER
-        x1 = x0
-        y1 = y0 + DD * CELLS
-        canvas.create_line(x0, y0, x1, y1, width=1, fill="#CCCCCC")
-        canvas.create_line(y0, x0, y1, x1, width=1, fill="#CCCCCC")
-        pass
-
-# ---------------------------------------------- Game control ---------------------------------------------------------#
+# ----------------------------------------------- Frame ---------------------------------------------------------------#
 
 
-def update_score(num):
-    global score_label
-    s = "Score: %d" % (num)
-    score_label.config(text=s)
+class LinesFrame(Frame):
+    def __init__(self, parent):
+        Frame.__init__(self, parent)
+        self.score = 0
+        self.status = Status.on
+        self.score_label = Label(self, text="Score: 0")
+        self.score_label.pack()
+        self.make_menu()
 
+    def set_canvas(self, canvas):
+        self.canvas = canvas
 
-def game_over(num):
-    global score_label, status, doIncrementEvent
-    doIncrementEvent.clear()
-    status = Status.over
-    s = "Game Over, Final Score: %d" % (num)
-    score_label.config(text=s)
+    def make_menu(self):
+        menubar = Menu(self.master)
+        file_menu = Menu(menubar, tearoff=False)
+        file_menu.add_command(label="Restart", command=self.on_menu_restart)
+        file_menu.add_separator()
+        file_menu.add_command(label="Exit", command=self.on_menu_exit)
+        menubar.add_cascade(label="File", menu=file_menu)
+        help_menu = Menu(menubar, tearoff=False)
+        help_menu.add_command(label="About...", command=self.on_menu_about)
+        menubar.add_cascade(label="Help", menu=help_menu)
+        self.master.config(menu=menubar)
 
+    def update_score(self, num):
+        s = "Score: %d" % (num)
+        self.score_label.config(text=s)
 
-balls = BallSet()
+    def add_to_score(self, num):
+        self.score += num
+        self.update_score(self.score)
 
-status = Status.on
+    def game_over(self):
+        status = Status.over
+        s = "Game Over, Final Score: %d" % (self.score)
+        self.score_label.config(text=s)
 
-score = 0
+    def on_menu_restart(self):
+        self.status = Status.on
+        self.score = 0
+        self.update_score(0)
+        canvas.restart()
 
-mouseEnabled = False # TODO: replace with a mutex
-doIncrementEvent = th.Event()
-doIncrementEvent.clear()
+    def on_menu_exit(self):
+        self.master.quit()
+
+    def on_menu_about(self):
+        showinfo(title="About", message="PyLines (c) by r47717")
 
 # ------------------------------------------------ Create GUI ---------------------------------------------------------#
 
@@ -137,30 +137,8 @@ root = Tk()
 root.title("PyLines")
 root.wm_resizable(False, False)
 
-menubar = Menu(root)
-file_menu = Menu(menubar, tearoff=False)
-file_menu.add_command(label="Restart", command=on_menu_restart)
-file_menu.add_separator()
-file_menu.add_command(label="Exit", command=on_menu_exit)
-menubar.add_cascade(label="File", menu=file_menu)
-help_menu = Menu(menubar, tearoff=False)
-help_menu.add_command(label="About...", command=on_menu_about)
-menubar.add_cascade(label="Help", menu=help_menu)
-root.config(menu=menubar)
+frame = LinesFrame(root)
+frame.pack()
 
-canvas = Canvas(root, width=FIELD_SIZE, height=FIELD_SIZE, bd=4, relief=RIDGE)
-draw_grid(canvas)
-canvas.bind("<Button-1>", lambda event, arg=(canvas, balls): on_mouse_down(event, arg))
-canvas.pack()
-
-score_label = Label(root, text="Score: 0")
-score_label.pack()
-
-ballsThread = th.Thread(target=balls_thread_func, args=(canvas, balls))
-ballsThread.start()
-
+canvas = LinesCanvas(frame, BallSet())
 root.mainloop()
-
-status = Status.quit
-doIncrementEvent.set()
-ballsThread.join()
