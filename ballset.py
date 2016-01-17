@@ -3,6 +3,7 @@ from params import *
 from random import randint, choice
 from ball import Ball
 from tkinter import Canvas
+from time import sleep
 from tkinter.messagebox import showinfo
 
 colors = ['red', 'green', 'blue', 'yellow', 'orange', 'magenta']
@@ -117,11 +118,27 @@ class BallSet:
                     longest = longest_seq[:]
                     longest_len = len(longest_seq)
             if longest_len >= MIN_SEQ:
-                reduce_seq(self.data, longest, canvas)
+                self.reduce_seq(longest, canvas)
                 count += longest_len
             else:
                 break
         return count
+
+    def reduce_seq(self, seq, canvas):
+        delay = 0.02
+        blinks = 3
+        for i in range(blinks):
+            for ball in seq:
+                canvas.itemconfig(ball.id, fill='white')
+            canvas.update()
+            sleep(delay)
+            for ball in seq:
+                canvas.itemconfig(ball.id, fill=ball.color)
+            canvas.update()
+            sleep(delay)
+        for ball in seq:
+            ball.delete(canvas)
+            self.data.remove(ball)
 
     def move_ball(self, new_i, new_j, canvas):
         """
@@ -187,101 +204,3 @@ class BallSet:
             front = new_front[:]
             reachable.extend(front)
         return False
-
-# ------ Testing -------
-
-if __name__ == "__main__":
-    pass
-
-# balls = BallSet()
-# balls.new_random_ball()
-# balls.new_random_ball()
-# balls.new_random_ball()
-# balls.new_random_ball()
-# balls.new_random_ball()
-# balls.new_random_ball()
-# balls.new_random_ball()
-# balls.new_random_ball()
-# balls.new_random_ball()
-# balls.new_random_ball()
-# balls.new_random_ball()
-# balls.new_random_ball()
-# balls.new_random_ball()
-# balls.new_random_ball()
-# balls.new_random_ball()
-# balls.new_random_ball()
-# balls.new_random_ball()
-# balls.new_random_ball()
-# balls.new_random_ball()
-# balls.new_random_ball()
-# balls.new_random_ball()
-# balls.new_random_ball()
-# balls.new_random_ball()
-# balls.new_random_ball()
-# balls.new_random_ball()
-# balls.new_random_ball()
-# balls.new_random_ball()
-# balls.new_random_ball()
-# balls.new_random_ball()
-# balls.new_random_ball()
-
-#balls.add_ball(Ball(6,0))
-#balls.add_ball(Ball(3,3))
-#balls.add_ball(Ball(4,2))
-#balls.add_ball(Ball(2,4))
-#balls.add_ball(Ball(5,1))
-#balls.add_ball(Ball(1,5))
-#balls.add_ball(Ball(0,6))
-
-#balls.add_ball(Ball(6,5))
-#balls.add_ball(Ball(6,6))
-#balls.add_ball(Ball(6,7))
-#balls.add_ball(Ball(6,8))
-#balls.add_ball(Ball(6,9))
-
-#balls.add_ball(Ball(8,8))
-#balls.add_ball(Ball(7,8))
-#balls.add_ball(Ball(6,8))
-#balls.add_ball(Ball(5,8))
-#balls.add_ball(Ball(4,8))
-#balls.add_ball(Ball(3,8))
-#balls.add_ball(Ball(2,8))
-
-
-# print("balls: \n", balls)
-#
-# longest = BallSet.find_longest(balls.data)
-# print("longest:")
-# for i in longest:
-#     print(i)
-#
-# balls.collapse_lines()
-#
-# longest = BallSet.find_longest(balls.data)
-# print("longest 2:")
-# for i in longest:
-#     print(i)
-
-
-#for n in range(1, 4*CELLS - 1):
-#    seq = BallSet.d_longest(n, balls.data)
-#    if seq:
-#        print("diag #", n)
-#        for i in seq:
-#            print(i)
-#        break
-
-#lst = balls.d_longest(1, balls.data)
-#print("longest diag sequence: ")
-#for item in lst:
-#    print(item)
-
-#diag = 6
-#print("diag:")
-#print(BallSet.diag_coords(diag))
-
-#print("filter: \n")
-#filter = BallSet.d_filter(diag, balls.data)
-
-#for item in filter:
-#    print(item)

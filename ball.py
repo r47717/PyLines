@@ -1,5 +1,6 @@
 from params import *
 from tkinter import Canvas
+from time import sleep
 
 
 class Ball:

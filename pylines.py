@@ -49,8 +49,9 @@ class LinesCanvas(Canvas):
             return
         if self.balls.move_ball(i, j, self):
             self.update()
-            sleep(0.05)
+            sleep(0.1)
             lines = self.balls.collapse_lines(self)
+            self.update()
             sleep(0.05)
             if lines:
                 self.master.add_to_score(lines)
