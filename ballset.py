@@ -125,11 +125,11 @@ class BallSet:
         return count
 
     def reduce_seq(self, seq, canvas):
-        delay = 0.02
+        delay = 0.05
         blinks = 3
         for i in range(blinks):
             for ball in seq:
-                canvas.itemconfig(ball.id, fill='white')
+                canvas.itemconfig(ball.id, fill='#EEEEEE')
             canvas.update()
             sleep(delay)
             for ball in seq:

@@ -11,15 +11,14 @@ from enum import Enum
 
 class Status(Enum):
     on = 1       # game in progress
-    over = 3     # game over, can restart
-    quit = 4     # game is being quit, restart impossible
+    over = 2     # game over, can restart
 
 
 # ---------------------------------------------- Canvas ---------------------------------------------------------------#
 
 class LinesCanvas(Canvas):
     def __init__(self, parent, balls):
-        Canvas.__init__(self, parent, width=FIELD_SIZE, height=FIELD_SIZE, bd=4, relief=RIDGE)
+        Canvas.__init__(self, parent, width=FIELD_SIZE, height=FIELD_SIZE, bd=4, relief=RIDGE, bg="#EEEEEE")
         parent.set_canvas(self)
         self.draw_grid()
         self.pack()
